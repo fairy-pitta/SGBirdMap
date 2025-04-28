@@ -165,6 +165,7 @@ export default function Home() {
                 startDate={startDate}
                 endDate={endDate}
                 showAll={showAll}
+                isPlaying={isPlaying}
                 isLongTermView={isLongTermView}
                 currentViewDate={currentViewDate}
               />
@@ -185,6 +186,7 @@ export default function Home() {
                   startDate={startDate}
                   endDate={endDate}
                   showAll={showAll}
+                  isPlaying={isPlaying}
                   isLongTermView={isLongTermView}
                   currentViewDate={currentViewDate}
                 />

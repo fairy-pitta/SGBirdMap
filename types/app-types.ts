@@ -16,6 +16,7 @@ export interface MapProps {
   startDate: Date
   endDate: Date
   showAll: boolean
+  isPlaying: boolean
   isLongTermView: boolean
   currentViewDate: Date
 }
