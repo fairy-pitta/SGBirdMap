@@ -39,6 +39,7 @@ export const ANIMATION_CSS = `
     background-color: #dc2626;
     animation: pulse 6s ease-out;
     animation-iteration-count: infinite;
+    border-radius:50%;
   }
   
   @keyframes pulse {
@@ -47,7 +48,7 @@ export const ANIMATION_CSS = `
       transform: scale(0.3);
     }
     50% {
-      opacity: 0.4;
+      opacity: 0.6;
       transform: scale(2);
     }
     100% {

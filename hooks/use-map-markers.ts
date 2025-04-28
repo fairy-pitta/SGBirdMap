@@ -9,88 +9,69 @@ import {
 } from "@/constants/marker-constants"
 import { createPopupContent } from "@/utils/popup-utils"
 
-/**
- * マップ上のマーカー生成をまとめたカスタムフック
- * ───────────────────────────────────────────────
- * - 永続ドット   : createPersistentMarker()
- * - アクティブ円 : createActiveMarker()  ➜ 点とパルスを分離管理
- */
 export function useMapMarkers(isMobile: boolean) {
-  /**
-   * 永続（薄い点）マーカー
-   */
+  /* ── 薄い点 ──────────────────────────────── */
   const createPersistentMarker = useCallback(
-    (obs: BirdObservation) => {
-      const marker = L.circleMarker([obs.lat, obs.lng], {
+    (obs: BirdObservation) =>
+      L.circleMarker([obs.lat, obs.lng], {
         ...PERSISTENT_MARKER_STYLE,
         radius: isMobile
           ? PERSISTENT_MARKER_STYLE.radius * 1.5
           : PERSISTENT_MARKER_STYLE.radius,
       }).bindPopup(createPopupContent(obs, isMobile), {
         maxWidth: isMobile ? 200 : 300,
-        offset: isMobile ? new L.Point(0, -10) : new L.Point(0, 0),
-      })
-
-      return marker
-    },
+        offset  : isMobile ? new L.Point(0, -10) : new L.Point(0, 0),
+      }),
     [isMobile],
   )
 
-  /**
-   * アクティブ（パルス付き）マーカー
-   */
+  /* ── 点＋パルス ──────────────────────────── */
   const createActiveMarker = useCallback(
     (obs: BirdObservation) => {
-      const baseMultiplier = isMobile ? 4 : 3
-      const minRadius = isMobile ? 8 : 5
-      const maxRadius = isMobile ? 40 : 30
-      const baseRadius = obs.howMany
-        ? Math.min(Math.max(obs.howMany * baseMultiplier, minRadius), maxRadius)
-        : minRadius
-  
+      /* 半径計算 */
+      const mult = isMobile ? 2 : 3
+      const min  = isMobile ? 3 : 5
+      const max  = isMobile ? 20 : 30
+      const r    = obs.howMany
+        ? Math.min(Math.max(obs.howMany * mult, min), max)
+        : min
+
+      /* 点の円 */
       const mainCircle = L.circleMarker([obs.lat, obs.lng], {
-        radius: baseRadius,
-        fillColor: ACTIVE_MARKER_STYLE.fillColor,
-        color: ACTIVE_MARKER_STYLE.color,
-        weight: ACTIVE_MARKER_STYLE.weight,
-        opacity: ACTIVE_MARKER_STYLE.opacity,
-        fillOpacity: ACTIVE_MARKER_STYLE.fillOpacity,
-        className: "observation-marker",
+        radius      : r,
+        fillColor   : ACTIVE_MARKER_STYLE.fillColor,
+        color       : ACTIVE_MARKER_STYLE.color,
+        weight      : ACTIVE_MARKER_STYLE.weight,
+        opacity     : ACTIVE_MARKER_STYLE.opacity,
+        fillOpacity : ACTIVE_MARKER_STYLE.fillOpacity,
+        className   : "observation-marker",
+      }).bindPopup(createPopupContent(obs, isMobile), {
+        maxWidth: isMobile ? 200 : 300,
+        offset  : isMobile ? new L.Point(0, -10) : new L.Point(0, 0),
       })
 
+      /* パルスは外側 divIcon 内に “実パルス div” を描く */
+      const size   = r * 4
+      const anchor = size / 2
       const pulseMarker = L.marker([obs.lat, obs.lng], {
         icon: L.divIcon({
-          className: "",  // ここではクラスなし
+          className : "",     
+          iconSize  : [size, size],
+          iconAnchor: [anchor, anchor],
           html: `
-            <div style="
-              width: ${baseRadius * 4}px;
-              height: ${baseRadius * 4}px;
-              margin-left: -${baseRadius * 2}px;
-              margin-top: -${baseRadius * 2}px;
-              background: red;
-              border-radius: 50%;
-              opacity: 0.6;
-              animation: pulse 6s ease-out infinite;
-              position: absolute;
-              transform: translate(-50%, -50%);
-            "></div>`,
-          iconSize: [0, 0],  // ← これ必須！ (divのサイズでやるので0にする)
+            <div class="pulse-circle" style="
+              width : ${size}px;
+              height: ${size}px;
+            "></div>
+          `,
         }),
         interactive: false,
       })
-  
-      mainCircle.bindPopup(createPopupContent(obs, isMobile), {
-        maxWidth: isMobile ? 200 : 300,
-        offset: isMobile ? new L.Point(0, -10) : new L.Point(0, 0),
-      })
-  
+
       return { mainCircle, pulseMarker }
     },
     [isMobile],
   )
 
-  return {
-    createPersistentMarker,
-    createActiveMarker,
-  }
+  return { createPersistentMarker, createActiveMarker }
 }

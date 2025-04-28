@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { fetchSpeciesInSingapore } from "@/lib/api" // ← セミコロンバグ修正
+import { fetchSpeciesInSingapore } from "@/lib/api"
 
 interface SpeciesSelectorProps {
   onSelect: (speciesCode: string | null) => void
@@ -90,10 +90,10 @@ export default function SpeciesSelector({ onSelect }: SpeciesSelectorProps) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 z-[2000]">
+      <PopoverContent className="w-full max-h-[80vh] overflow-y-auto touch-auto overscroll-contain p-0 z-[2000]" side="bottom" align="start">
         <Command>
           <CommandInput placeholder="Search species..." onValueChange={handleSearch} />
-          <CommandList className="max-h-60 overflow-y-auto">
+          <CommandList className="max-h-60 overflow-y-auto touch-auto">
             <CommandEmpty>No species found</CommandEmpty>
             <CommandGroup>
               <CommandItem

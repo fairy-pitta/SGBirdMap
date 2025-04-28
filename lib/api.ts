@@ -157,14 +157,14 @@ export async function fetchBirdObservations(
 
     // APIレスポンスを BirdObservation にマッピング
     return data.map((item: any) => ({
-      speciesCode: speciesCode || "", // リクエストからそのまま
-      comName: "", // 不要なので空
-      sciName: "", // 不要なので空
+      speciesCode: speciesCode || "", 
+      comName: item.observed_species?.[0]?.com_name || "", 
+      sciName: item.observed_species?.[0]?.sci_name || "",
       locId: item.location_id || "",
       locName: item.location_name || "",
       obsDt: item.obs_dt || "",
       obsTime: undefined, // APIに無い
-      howMany: undefined, // APIに無い
+      howMany: item.observed_species?.[0]?.how_many ?? undefined, 
       lat: item.lat,
       lng: item.lng,
       obsValid: item.obs_valid !== undefined ? item.obs_valid : true,

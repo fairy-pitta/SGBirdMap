@@ -2,17 +2,20 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import dynamic from "next/dynamic"
+import { addDays } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
-import { addDays } from "date-fns"
+
 import SimpleFilterPanel from "@/components/filter-panel" 
 import TimeControl from "@/components/time-control"
 import TimeControlMobile from "@/components/time-control-mobile"
+
 import { usePeriod } from "@/hooks/use-period"
 import { useMobileDetection } from "@/hooks/use-mobile-detection"
-import { ANIMATION_SPEED, SLIDER_INCREMENT } from "@/constants/map-constants"
-import MobileMenu from "@/components/mobile-menu"
 import { useBirdData } from "@/hooks/use-bird-data"
+
+import { ANIMATION_SPEED, SLIDER_INCREMENT } from "@/constants/map-constants"
 
 const MapComponent = dynamic(() => import("@/components/map"), {
   ssr: false,
@@ -29,7 +32,6 @@ export default function Home() {
   const [timeValue, setTimeValue] = useState([0])
   const [showAll, setShowAll] = useState(false)
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const animationFrameRef = useRef<number | null>(null)
   const lastTimestampRef = useRef<number>(0)
@@ -37,12 +39,10 @@ export default function Home() {
 
   const { period, setPeriod, startDate, setStartDate, endDate, setEndDate, isLongTermView } = usePeriod()
   const { isMobile } = useMobileDetection()
+  const { observations, refreshData } = useBirdData()
 
   const togglePlay = useCallback(() => setIsPlaying(prev => !prev), [])
   const toggleShowAll = useCallback(() => setShowAll(prev => !prev), [])
-
-  const birdData = useBirdData();
-  const { observations, refreshData } = birdData
 
   useEffect(() => {
     if (isLongTermView) {
@@ -140,23 +140,19 @@ export default function Home() {
       <div className="h-screen flex flex-col">
         <header className="bg-slate-800 text-white p-3 shadow-md">
           <div className="mx-auto flex justify-between items-center">
-            {isMobile ? (
-              <div className="flex items-center">
-                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)}>
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Menu</span>
-                </Button>
-                <h1 className="font-bold text-base ml-2">SG Bird Map</h1>
-              </div>
-            ) : (
-              <h1 className="font-bold text-xl">Singapore Bird Observation Map</h1>
-            )}
+            <h1 className="font-bold text-xl">Singapore Bird Observation Map</h1>
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col">
-          {isMobile ? (
-            <div className="flex-1 flex flex-col">
+        {isMobile ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* モバイル版：上にフィルターとタイムコントロール */}
+            <div className="p-3 space-y-3 bg-slate-100 shadow-md">
+              {controlPanel}
+              {timeControl}
+            </div>
+            {/* 地図 */}
+            <div className="flex-1 overflow-hidden">
               <MapComponent
                 observations={observations}
                 onRefresh={refreshData}
@@ -169,15 +165,15 @@ export default function Home() {
                 isLongTermView={isLongTermView}
                 currentViewDate={currentViewDate}
               />
-              {timeControl}
-              <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                {controlPanel}
-              </MobileMenu>
             </div>
-          ) : (
-            <div className="flex-1 flex overflow-hidden">
-              <div className="w-72 bg-slate-100 p-4 overflow-y-auto shadow-md">{controlPanel}</div>
-              <div className="flex-1 flex flex-col">
+          </div>
+        ) : (
+          <div className="flex-1 flex overflow-hidden">
+            {/* PC版：左にフィルター */}
+            <div className="w-72 bg-slate-100 p-4 overflow-y-auto shadow-md">{controlPanel}</div>
+            {/* 右にマップ＋スライダー */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-hidden">
                 <MapComponent
                   observations={observations}
                   onRefresh={refreshData}
@@ -190,11 +186,11 @@ export default function Home() {
                   isLongTermView={isLongTermView}
                   currentViewDate={currentViewDate}
                 />
-                {timeControl}
               </div>
+              {timeControl}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   )

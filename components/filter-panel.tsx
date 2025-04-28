@@ -10,7 +10,7 @@ import type { PeriodSelectorProps } from "@/types/app-types"
 interface SimpleFilterPanelProps {
   periodProps: PeriodSelectorProps
   onSpeciesSelect: (speciesCode: string | null) => void
-  onGetData: () => Promise<void>  // 👈 Promise<void> で受け取る前提に変更
+  onGetData: () => Promise<void>  
 }
 
 export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetData }: SimpleFilterPanelProps) {
@@ -21,7 +21,7 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
       setStatus("loading")
       await onGetData()
       setStatus("success")
-      setTimeout(() => setStatus("idle"), 2000)  // 2秒後にリセット
+      setTimeout(() => setStatus("idle"), 2000) 
     } catch (error) {
       console.error("Failed to get data:", error)
       setStatus("idle")
