@@ -10,10 +10,10 @@ import {
 import { createPopupContent } from "@/utils/popup-utils"
 
 /**
- *  マップ上のマーカー生成をまとめたカスタムフック
- *  ───────────────────────────────────────────────
- *  - 永続ドット   : createPersistentMarker()
- *  - アクティブ円 : createActiveMarker()  ➜ ２枚重ねでパルス演出
+ * マップ上のマーカー生成をまとめたカスタムフック
+ * ───────────────────────────────────────────────
+ * - 永続ドット   : createPersistentMarker()
+ * - アクティブ円 : createActiveMarker()  ➜ ２枚重ねでパルス演出
  */
 export function useMapMarkers(isMobile: boolean) {
   /* ──────────────────────────────
@@ -60,15 +60,21 @@ export function useMapMarkers(isMobile: boolean) {
         className: "observation-marker",
       })
 
-      /* --- パルス用の円（外側に拡散） --- */
-      const pulseCircle = L.circleMarker([obs.lat, obs.lng], {
-        radius: baseRadius,
-        fillColor: ACTIVE_MARKER_STYLE.fillColor,
-        color: "transparent",
-        fillOpacity: 0.4,
-        className: "observation-marker pulse-circle", // ←コンマではなく半角スペース
-        // strokeを無しにして “色付きの影” だけ拡張させたい場合
-        // stroke: false,
+      /* --- パルス用のdivマーカー（外側に拡散） --- */
+      const pulseMarker = L.marker([obs.lat, obs.lng], {
+        icon: L.divIcon({
+          className: "pulse-circle",
+          iconSize: [baseRadius * 4, baseRadius * 4],
+          html: `<div style="
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: ${ACTIVE_MARKER_STYLE.fillColor};
+            opacity: 0.7;
+            z-index: 10000;
+          "></div>`
+        }),
+        interactive: false,
       })
 
       /* --- ポップアップをメイン円にのみバインド --- */
@@ -78,7 +84,7 @@ export function useMapMarkers(isMobile: boolean) {
       })
 
       /* --- ２つを重ねて返す --- */
-      return L.layerGroup([pulseCircle, mainCircle])
+      return L.layerGroup([pulseMarker, mainCircle])
     },
     [isMobile],
   )
@@ -88,3 +94,4 @@ export function useMapMarkers(isMobile: boolean) {
     createActiveMarker,
   }
 }
+  

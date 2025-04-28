@@ -120,7 +120,9 @@ export default function MapComponent({
     const style = document.createElement("style")
     style.textContent = ANIMATION_CSS
     document.head.appendChild(style)
-    return () => document.head.removeChild(style)
+    return () => {
+      document.head.removeChild(style)
+    }
   }, [])
 
   /* map init */
