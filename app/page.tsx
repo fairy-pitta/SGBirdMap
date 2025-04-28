@@ -139,7 +139,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50">
       <div className="h-screen flex flex-col">
         <header className="bg-slate-800 text-white p-3 shadow-md">
-          <div className="container mx-auto flex justify-between items-center">
+          <div className="mx-auto flex justify-between items-center">
             {isMobile ? (
               <div className="flex items-center">
                 <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)}>
