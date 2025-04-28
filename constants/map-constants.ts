@@ -36,6 +36,7 @@ export const PERSISTENT_MARKER_STYLE = {
 export const ANIMATION_CSS = `
   /* パルスアニメーション */
   .pulse-circle {
+    background-color: #dc2626;
     animation: pulse 6s ease-out;
     animation-iteration-count: infinite;
   }

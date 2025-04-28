@@ -167,22 +167,27 @@ export default function MapComponent({
   /* ------------------------------- draw ---------------------------- */
   const drawMarkers = useCallback(
     (result: FilterResult) => {
-      if (!activeLayerRef.current) return
+      if (!activeLayerRef.current || !mapRef.current) return
       const layer = activeLayerRef.current
+      const map = mapRef.current
       layer.clearLayers()
-
+  
       if (showAll) {
-        // showAll = true → filtered 全部
-        result.filtered.forEach(obs => createActiveMarker(obs).addTo(layer))
+        result.filtered.forEach(obs => {
+          const { mainCircle } = createActiveMarker(obs)
+          mainCircle.addTo(layer)
+        })
       } else if (isPlaying) {
-        // 再生中 (showAll=false) → newObservations のみ
-        result.newObservations.forEach(obs => createActiveMarker(obs).addTo(layer))
+        result.newObservations.forEach(obs => {
+          const { mainCircle, pulseMarker } = createActiveMarker(obs)
+          mainCircle.addTo(layer)
+          pulseMarker.addTo(map)
+        })
       }
       /* showAll=false & isPlaying=false → 何も描画しない */
     },
     [createActiveMarker, showAll, isPlaying],
   )
-
   /* ------------------------------- main effect --------------------- */
   useEffect(() => {
     if (!mapRef.current) return
