@@ -19,6 +19,7 @@ export interface MapProps {
   isPlaying: boolean
   isLongTermView: boolean
   currentViewDate: Date
+  showHeatmap: boolean
 }
 
 // 期間選択コンポーネントのプロップス
@@ -44,6 +45,8 @@ export interface TimeControlProps {
   togglePlay: () => void
   showAll: boolean
   toggleShowAll: () => void
+  showHeatmap: boolean
+  toggleShowHeatmap: () => void
   startDate: Date
   endDate: Date
   isLongTermView: boolean

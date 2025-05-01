@@ -106,3 +106,10 @@ export const ANIMATION_CSS = `
     }
   }
 `
+
+export const SINGAPORE_BOUNDS = {
+  minLat: 1.15,
+  maxLat: 1.50,
+  minLng: 103.60,
+  maxLng: 104.10,
+}

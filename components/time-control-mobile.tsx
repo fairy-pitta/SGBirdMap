@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
-import { Play, Pause, Eye } from "lucide-react"
+import { Play, Pause, Eye, Flame } from "lucide-react"
 import { format } from "date-fns"
 import { timeValueToString } from "@/lib/utils"
 import type { TimeControlProps } from "@/types/app-types"
@@ -14,21 +14,18 @@ export default function TimeControlMobile({
   togglePlay,
   showAll,
   toggleShowAll,
+  showHeatmap,
+  toggleShowHeatmap,
   startDate,
   endDate,
   isLongTermView,
   currentViewDate,
   disabled = false,
 }: TimeControlProps) {
-  // 適切な時間表示を取得
   const getTimeDisplay = () => {
-    if (showAll) {
-      return `All Period`
-    } else if (isLongTermView) {
-      return format(currentViewDate, "yyyy/MM/dd")
-    } else {
-      return timeValueToString(timeValue[0])
-    }
+    if (showAll) return "All Period"
+    if (isLongTermView) return format(currentViewDate, "yyyy/MM/dd")
+    return timeValueToString(timeValue[0])
   }
 
   return (
@@ -54,22 +51,35 @@ export default function TimeControlMobile({
             <Eye className="h-4 w-4 mr-1" />
             {showAll ? "Showing All" : "Show All"}
           </Button>
+          <Button
+            variant={showHeatmap ? "default" : "outline"}
+            size="sm"
+            className={`${showHeatmap ? "bg-orange-600 text-white" : "bg-white"} h-9`}
+            onClick={toggleShowHeatmap}
+            disabled={disabled}
+          >
+            <Flame className="h-4 w-4 mr-1" />
+            {showHeatmap ? "Heatmap On" : "Heatmap"}
+          </Button>
         </div>
         <span className="text-sm font-medium">{getTimeDisplay()}</span>
       </div>
 
       <div className="space-y-1">
-        <Slider value={timeValue} onValueChange={setTimeValue} max={100} step={1} disabled={showAll || disabled} />
-
+        <Slider
+          value={timeValue}
+          onValueChange={setTimeValue}
+          max={100}
+          step={1}
+          disabled={showAll || disabled}
+        />
         <div className="flex justify-between text-xs text-slate-500">
           {isLongTermView ? (
-            // 長期間表示の場合は日付範囲を表示（簡略化）
             <>
               <span>{format(startDate, "MM/dd")}</span>
               <span>{format(endDate, "MM/dd")}</span>
             </>
           ) : (
-            // 短期間表示の場合は時間を表示（簡略化）
             <>
               <span>00:00</span>
               <span>12:00</span>
