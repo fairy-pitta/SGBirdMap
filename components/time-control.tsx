@@ -6,6 +6,7 @@ import { Play, Pause, Eye, Flame } from "lucide-react"
 import { format } from "date-fns"
 import { timeValueToString } from "@/lib/utils"
 import type { TimeControlProps } from "@/types/app-types"
+import HeatmapLegend from "@/components/heatmap-legend"
 
 export default function TimeControl({
   timeValue,
@@ -72,6 +73,8 @@ export default function TimeControl({
           </Button>
 
           <span className="text-sm font-medium">{getTimeDisplay()}</span>
+
+          <HeatmapLegend show={showHeatmap} />
         </div>
       </div>
 
