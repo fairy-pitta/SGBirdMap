@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import SpeciesSelector from "@/components/species-selector"
 import PeriodSelector from "@/components/period-selector"
+import AboutSheet from "@/components/about"
 import type { PeriodSelectorProps } from "@/types/app-types"
 
 interface SimpleFilterPanelProps {
@@ -30,6 +31,9 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
 
   return (
     <div className="w-full space-y-6 p-4 rounded-md">
+
+      <AboutSheet />
+
       {/* Period Picker */}
       <div>
         <Label className="block text-sm font-medium mb-2">Observation Period</Label>
@@ -47,13 +51,14 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
         <Button
           onClick={handleGetData}
           className={`w-full p-6 mt-6 transition-all ${
-            status === "success" ? "bg-green-500 hover:bg-green-600" : ""
+            status === "success" ? "bg-green-500 hover:bg-green-600" : "bg-slate-800 text-white hover:bg-slate-700"
           }`}
           disabled={status === "loading"}
         >
           {status === "success" ? "Got it!" : status === "loading" ? "Loading..." : "Get Data"}
         </Button>
       </div>
+
     </div>
   )
 }
