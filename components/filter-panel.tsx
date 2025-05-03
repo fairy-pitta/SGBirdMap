@@ -46,7 +46,7 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
       <div>
         <Button
           onClick={handleGetData}
-          className={`w-full p-6 mt-8 transition-all ${
+          className={`w-full p-6 mt-6 transition-all ${
             status === "success" ? "bg-green-500 hover:bg-green-600" : ""
           }`}
           disabled={status === "loading"}
