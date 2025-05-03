@@ -46,6 +46,7 @@
     "date-fns": "latest",
     "embla-carousel-react": "8.5.1",
     "fs": "latest",
+    "fuse.js": "^7.1.0",
     "input-otp": "1.4.1",
     "leaflet": "latest",
     "leaflet.heat": "^0.2.0",
