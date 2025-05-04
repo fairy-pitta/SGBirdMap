@@ -5,7 +5,6 @@ import "leaflet.heat"
 
 import type { BirdObservation } from "@/types/birds"
 import { isInsideBoundary } from "@/utils/geo-utils"
-import { HEAT_LAYER_OPTIONS } from "@/constants/map-constants"
 
 export interface HeatmapLayerProps {
   map: L.Map | null
