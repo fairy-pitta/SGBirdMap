@@ -31,7 +31,6 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
 
   return (
     <div className="w-full space-y-6 p-4 rounded-md">
-
       <AboutSheet />
 
       {/* Period Picker */}
