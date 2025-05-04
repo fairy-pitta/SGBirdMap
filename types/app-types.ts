@@ -1,7 +1,7 @@
 import type { BirdObservation } from "./birds"
 
 // 期間選択のタイプ
-export type PeriodType = "thisYear" | "past3Years" | "year" | "custom"
+export type PeriodType = "thisYear" | "past3Years" | "year" | "custom" | "allData"
 
 // マップコンポーネントのプロップス
 export interface MapProps {
