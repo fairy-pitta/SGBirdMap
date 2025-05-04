@@ -3,8 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Play, Pause, Eye, Flame } from "lucide-react"
-import { format } from "date-fns"
-import { timeValueToString } from "@/lib/utils"
+import { format, eachDayOfInterval } from "date-fns"
 import type { TimeControlProps } from "@/types/app-types"
 import HeatmapLegend from "@/components/heatmap-legend"
 
@@ -19,25 +18,30 @@ export default function TimeControl({
   toggleShowHeatmap,
   startDate,
   endDate,
-  isLongTermView,
   currentViewDate,
   disabled = false,
 }: TimeControlProps) {
+
   const getTimeDisplay = () => {
     if (showAll) {
       return `All Period: ${format(startDate, "yyyy/MM/dd")} - ${format(endDate, "yyyy/MM/dd")}`
-    } else if (isLongTermView) {
-      return format(currentViewDate, "yyyy/MM/dd")
     } else {
-      return timeValueToString(timeValue[0])
+      const totalDuration = endDate.getTime() - startDate.getTime()
+      const currentTime = new Date(startDate.getTime() + (timeValue[0] / 100) * totalDuration)
+      return format(currentTime, "yyyy/MM/dd")
     }
+  }
+
+  const getDateLabels = () => {
+    const days = eachDayOfInterval({ start: startDate, end: endDate })
+    const interval = Math.ceil(days.length / 5) || 1
+    return days.filter((_, idx) => idx % interval === 0 || idx === days.length - 1)
   }
 
   return (
     <div className="h-24 bg-slate-200 p-3 border-t border-slate-300">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center">
-          {/* ▶︎ / ❚❚ */}
           <Button
             variant="outline"
             size="icon"
@@ -48,7 +52,6 @@ export default function TimeControl({
             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
 
-          {/* Show-All */}
           <Button
             variant={showAll ? "default" : "outline"}
             size="sm"
@@ -60,7 +63,6 @@ export default function TimeControl({
             {showAll ? "Showing All" : "Show All"}
           </Button>
 
-          {/* Heatmap */}
           <Button
             variant={showHeatmap ? "default" : "outline"}
             size="sm"
@@ -78,7 +80,7 @@ export default function TimeControl({
         </div>
       </div>
 
-      {/* Slider */}
+      {/* Slider + Labels */}
       <div className="space-y-1">
         <Slider
           value={timeValue}
@@ -88,21 +90,9 @@ export default function TimeControl({
           disabled={showAll || disabled}
         />
         <div className="flex justify-between text-xs text-slate-500">
-          {isLongTermView ? (
-            <>
-              <span>{format(startDate, "yyyy/MM/dd")}</span>
-              <span>{format(new Date((startDate.getTime() + endDate.getTime()) / 2), "yyyy/MM/dd")}</span>
-              <span>{format(endDate, "yyyy/MM/dd")}</span>
-            </>
-          ) : (
-            <>
-              <span>00:00</span>
-              <span>06:00</span>
-              <span>12:00</span>
-              <span>18:00</span>
-              <span>23:59</span>
-            </>
-          )}
+          {getDateLabels().map((d, i) => (
+            <span key={i}>{format(d, "yyyy/MM/dd")}</span>
+          ))}
         </div>
       </div>
     </div>
