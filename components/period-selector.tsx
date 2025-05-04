@@ -9,10 +9,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import type { PeriodType } from "@/types/app-types"
 
 export interface PeriodSelectorProps {
-  period: string
-  setPeriod: (period: string) => void
+  period: PeriodType
+  setPeriod: (period: PeriodType) => void
   startDate: Date
   setStartDate: (date: Date) => void
   endDate: Date
