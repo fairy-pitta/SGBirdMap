@@ -18,7 +18,7 @@ export const ACTIVE_MARKER_STYLE = {
   color: "#ffffff",
   weight: 2,
   opacity: 1,
-  fillOpacity: 0.6,
+  fillOpacity: 0.5,
   fillColor: "#dc2626", // red-600
 }
 
@@ -28,41 +28,58 @@ export const PERSISTENT_MARKER_STYLE = {
   color: "#dc2626", // red-600
   weight: 1,
   opacity: 0.8,
-  fillColor: "#dc2626", // red-600
+  fillColor: "#dc2626",
   fillOpacity: 0.8,
 }
 
 // アニメーションのCSS
 export const ANIMATION_CSS = `
-  /* パルスアニメーション */
-  .pulse-circle {
-    background-color: #dc2626;
-    animation: pulse 6s ease-out;
-    animation-iteration-count: infinite;
-    border-radius:50%;
+  /* パルスアニメーション（複数同心円） */
+  .pulse-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
-  
+
+  .pulse-circle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #dc2626;
+    animation: pulse 6s ease-out infinite;
+  }
+
+  .pulse-circle:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  .pulse-circle:nth-child(3) {
+    animation-delay: 1s;
+  }
+
   @keyframes pulse {
     0% {
-      opacity: 0.7;
+      opacity: 0.5;
       transform: scale(0.3);
     }
     50% {
-      opacity: 0.6;
-      transform: scale(2);
+      opacity: 0.4;
+      transform: scale(1.3);
     }
     100% {
       opacity: 0;
-      transform: scale(3);
+      transform: scale(2.2);
     }
   }
 
-  /* 出現アニメーション - 小さいサイズから拡大（さらにゆっくり） */
   .observation-marker {
     animation: appear 5s cubic-bezier(0.07, 0.25, 0.25, 1) forwards;
     transform-origin: center center;
   }
-  
+
   @keyframes appear {
     0% {
       opacity: 0;
@@ -73,7 +90,7 @@ export const ANIMATION_CSS = `
       transform: scale(0.3);
     }
     50% {
-      opacity: 0.7;
+      opacity: 0.6;
       transform: scale(0.6);
     }
     100% {
@@ -82,7 +99,6 @@ export const ANIMATION_CSS = `
     }
   }
 
-  /* フェードアウトアニメーション（ゆっくり） */
   .observation-marker.fade-out {
     animation: fadeOut 3s ease-out forwards;
   }
