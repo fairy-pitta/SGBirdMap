@@ -193,6 +193,7 @@ export default function MapComponent({
         selectedSpecies={selectedSpecies}
         dateRange={heatmapDateRange}
         isVisible={showHeatmap}
+        showAll={showAll}
       />
     </div>
   )
