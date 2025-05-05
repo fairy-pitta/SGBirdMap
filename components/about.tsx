@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, X} from "lucide-react"
+import { CircleHelp, X} from "lucide-react"
 
 export default function AboutSheet() {
   const [isOpen, setIsOpen] = useState(false)
@@ -39,7 +39,7 @@ export default function AboutSheet() {
         onClick={() => setIsOpen(true)}
         className="w-full mb-4 p-6 bg-slate-800 text-white hover:bg-slate-700"
       >
-        <Info className="h-4 w-4 mr-2" />
+        <CircleHelp className="h-4 w-4 mr-2" />
         About App
       </Button>
 
@@ -142,7 +142,7 @@ export default function AboutSheet() {
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">Data Limitations</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1 text-amber-800 bg-amber-50 border border-amber-200 p-4 rounded-md">
                   <li>Observation data is available from 2000 onward.</li>
-                  <li>Rare or protected species may be excluded from public datasets.</li>
+                  <li>Rare or protected species may be excluded from public datasets (e.g. Straw-headed Bulbul).</li>
                   <li>Data accuracy depends on volunteer observations submitted to eBird.</li>
                   <li>Hotspot biases may distort true bird distributions.</li>
                 </ul>
