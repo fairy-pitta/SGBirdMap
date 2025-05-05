@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, Github, Twitter, ExternalLink, X } from "lucide-react"
+import { Info, X} from "lucide-react"
 
 export default function AboutSheet() {
   const [isOpen, setIsOpen] = useState(false)
@@ -95,83 +95,79 @@ export default function AboutSheet() {
 
               <section className="mb-8">
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">How to Use</h3>
+                <ol className="list-decimal list-inside space-y-4 ml-4">
+                  <li>
+                    <span className="font-medium">Period Selection</span>: Choose a date range from the left panel.
+                  </li>
+                  <li>
+                    <span className="font-medium">Species Selection</span>: Filter observations by species.
+                  </li>
+                  <li>
+                    <span className="font-medium">Timeline Controls</span>: Use the slider and play button to animate through time.
+                  </li>
+                  <li>
+                    <span className="font-medium">Heatmap Toggle</span>: Show or hide density overlays using the toggle.
+                  </li>
+                </ol>
+              </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-3">Basic Operations</h4>
-                    <ol className="list-decimal list-inside space-y-2 ml-2">
-                      <li>
-                        <span className="font-medium">Period Selection</span>: Choose observation period in the left panel
-                        <div className="text-sm text-gray-600 ml-6 mt-1">
-                          Select from this year, past 3 years, specific year, or custom period
-                        </div>
-                      </li>
-                      <li>
-                        <span className="font-medium">Species Selection</span>: Filter by specific bird species
-                        <div className="text-sm text-gray-600 ml-6 mt-1">Select "All Species" to display all species</div>
-                      </li>
-                      <li>
-                        <span className="font-medium">Timeline Controls</span>: Adjust time using the slider at the bottom
-                        <div className="text-sm text-gray-600 ml-6 mt-1">
-                          Use play button for animation, "Show All" to display all data
-                        </div>
-                      </li>
-                      <li>
-                        <span className="font-medium">Heatmap Toggle</span>: Switch heatmap layer on/off with the toggle
-                        <div className="text-sm text-gray-600 ml-6 mt-1">
-                          When enabled, a red gradient overlay shows areas with many observations (based on count and frequency)
-                        </div>
-                      </li>
-                    </ol>
-                  </div>
+              <section className="mb-8">
+                <h3 className="text-xl font-bold mb-4 border-b pb-2">Data Processing Logic</h3>
+                <h4 className="font-semibold mb-3">Pulse Effect</h4>
+                <ul className="list-disc list-inside ml-4 mb-4 text-gray-700">
+                  <li>Each pulse lasts 6 seconds to simulate visibility.</li>
+                  <li>The pulse size is based on the reported bird count at each location.</li>
+                  <li>This visual does not imply continuous presence throughout the duration.</li>
+                  <li>Pulse radius is calculated with clamped scaling:</li>
+                  <pre className="bg-gray-100 text-sm p-2 mt-2 rounded border">
+{`radius = clamp(min, birdCount * multiplier, max)`}
+                  </pre>
+                </ul>
 
-                  <div>
-                    <h4 className="font-semibold mb-3">Understanding Markers</h4>
-                    <div className="space-y-3 ml-2">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
-                        <span>Small red dots: Observation locations</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-5 h-5 rounded-full bg-red-500 opacity-60 mr-3"></div>
-                        <span>Red circles: Active observations (at currently displayed time)</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-red-500 opacity-60 mr-3"></div>
-                        <span>Large circles: Locations with many birds observed</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-8 h-4 rounded bg-gradient-to-r from-transparent via-red-500 to-transparent mr-3"></div>
-                        <span>Heatmap overlay: Density visualization based on all records</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <h4 className="font-semibold mb-3">Heatmap Calculation</h4>
+                <ul className="list-disc list-inside ml-4 mb-4 text-gray-700">
+                  <li>When data is sparse, a larger date window (±3 to ±60 days) is used to enhance visibility.</li>
+                  <li>Observation weight is scaled logarithmically:</li>
+                  <pre className="bg-gray-100 text-sm p-2 mt-2 rounded border">
+{`weight = Math.log2(1 + numberOfBirds)`}
+                  </pre>
+                  <li>Radius adjusts with zoom and density:</li>
+                  <pre className="bg-gray-100 text-sm p-2 mt-2 rounded border">
+{`radius = Math.max(12, 30 - (17 - zoomLevel) * 4)`}
+                  </pre>
+                </ul>
+              </section>
 
-                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-md">
-                  <h4 className="font-semibold mb-2 text-amber-800 flex items-center">
-                    <Info className="h-4 w-4 mr-2" />
-                    Data Limitations
-                  </h4>
-                  <ul className="list-disc list-inside space-y-1 ml-2 text-amber-800">
-                    <li>Observation data is most comprehensive from 2000 onwards</li>
-                    <li>Data for rare or protected species may not be displayed</li>
-                    <li>Data accuracy depends on observer reports</li>
-                    <li>Data tends to be concentrated in popular observation spots</li>
-                  </ul>
-                </div>
+              <section className="mb-8">
+                <h3 className="text-xl font-bold mb-4 border-b pb-2">Data Limitations</h3>
+                <ul className="list-disc list-inside ml-4 space-y-1 text-amber-800 bg-amber-50 border border-amber-200 p-4 rounded-md">
+                  <li>Observation data is available from 2000 onward.</li>
+                  <li>Rare or protected species may be excluded from public datasets.</li>
+                  <li>Data accuracy depends on volunteer observations submitted to eBird.</li>
+                  <li>Hotspot biases may distort true bird distributions.</li>
+                </ul>
               </section>
 
               <section className="mt-10">
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">Sources</h3>
                 <ul className="list-disc list-inside ml-2 space-y-1 text-gray-700 text-sm">
                   <li>
-                    <a href="https://gist.github.com/cheeaun/78bb5c3bd27759a14b3cf8e6b6568080" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      Gist: Singapore Bird Map Observations by @cheeaun
+                    <a
+                      href="https://gist.github.com/cheeaun/78bb5c3bd27759a14b3cf8e6b6568080"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Singapore land boundary GEOJSON by @cheeaun
                     </a>
                   </li>
                   <li>
-                    <a href="https://www.birds.cornell.edu/clementschecklist/download/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <a
+                      href="https://www.birds.cornell.edu/clementschecklist/download/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
                       Clements et al. (2024). The eBird/Clements checklist of Birds of the World: v2024. Cornell Lab of Ornithology
                     </a>
                   </li>
