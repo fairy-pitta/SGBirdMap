@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { addDays } from "date-fns"
-
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 
@@ -16,6 +15,8 @@ import { useMobileDetection } from "@/hooks/use-mobile-detection"
 import { useBirdData } from "@/hooks/use-bird-data"
 
 import { ANIMATION_SPEED, SLIDER_INCREMENT } from "@/constants/map-constants"
+import { getCachedPreferences } from "@/lib/cache" // 🔧 追加
+import Image from "next/image"
 
 const MapComponent = dynamic(() => import("@/components/map"), {
   ssr: false,
@@ -27,20 +28,10 @@ const MapComponent = dynamic(() => import("@/components/map"), {
 })
 
 export default function Home() {
-  /* ----------------------- state ----------------------- */
-  const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [timeValue, setTimeValue] = useState<[number]>([0])
-  const [showAll, setShowAll] = useState(false)
-  const [showHeatmap, setShowHeatmap] = useState(false)
-  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
+  /* ------------------ キャッシュ取得 ------------------ */
+  const cached = typeof window !== "undefined" ? getCachedPreferences() : null
 
-  /* ---------------- refs for manual animation ---------- */
-  const animationFrameRef = useRef<number | null>(null)
-  const lastTimestampRef = useRef<number>(0)
-  const accumulatedTimeRef = useRef<number>(0)
-
-  /* ---------------- custom hooks ---------------------- */
+  /* ------------------ Period ------------------ */
   const {
     period,
     setPeriod,
@@ -50,15 +41,41 @@ export default function Home() {
     setEndDate,
     isLongTermView,
   } = usePeriod()
+
+  useEffect(() => {
+    if (cached) {
+      try {
+        const s = new Date(cached.startDate)
+        const e = new Date(cached.endDate)
+        setStartDate(s)
+        setEndDate(e)
+      } catch (e) {
+        console.warn("Failed to restore date range from cache", e)
+      }
+    }
+  }, [setStartDate, setEndDate])
+
+  /* ------------------ State ------------------ */
+  const [selectedSpecies, setSelectedSpecies] = useState<string | null>(
+    cached?.speciesCode ?? null
+  )
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [timeValue, setTimeValue] = useState<[number]>([0])
+  const [showAll, setShowAll] = useState(false)
+  const [showHeatmap, setShowHeatmap] = useState(false)
+  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
+
+  const animationFrameRef = useRef<number | null>(null)
+  const lastTimestampRef = useRef<number>(0)
+  const accumulatedTimeRef = useRef<number>(0)
+
   const { isMobile } = useMobileDetection()
   const { observations, refreshData } = useBirdData()
 
-  /* ---------------- toggles --------------------------- */
-  const togglePlay = useCallback(() => setIsPlaying((prev) => !prev), [])
-  const toggleShowAll = useCallback(() => setShowAll((prev) => !prev), [])
-  const toggleShowHeatmap = useCallback(() => setShowHeatmap((p) => !p), [])
+  const togglePlay = useCallback(() => setIsPlaying(prev => !prev), [])
+  const toggleShowAll = useCallback(() => setShowAll(prev => !prev), [])
+  const toggleShowHeatmap = useCallback(() => setShowHeatmap(p => !p), [])
 
-  /* ---------------- current view date ------------------ */
   useEffect(() => {
     if (isLongTermView) {
       const totalDays = Math.max(
@@ -70,7 +87,6 @@ export default function Home() {
     }
   }, [timeValue, startDate, endDate, isLongTermView])
 
-  /* ---------------- slider autoplay ------------------- */
   useEffect(() => {
     if (animationFrameRef.current !== null)
       cancelAnimationFrame(animationFrameRef.current)
@@ -87,7 +103,7 @@ export default function Home() {
         accumulatedTimeRef.current += deltaTime
 
         if (accumulatedTimeRef.current >= ANIMATION_SPEED) {
-          setTimeValue((prev) => {
+          setTimeValue(prev => {
             const newValue = prev[0] + SLIDER_INCREMENT
             if (newValue > 100) {
               setIsPlaying(false)
@@ -110,7 +126,7 @@ export default function Home() {
     }
   }, [isPlaying])
 
-  /* ---------------- UI pieces ------------------------- */
+  /* ------------------ UI ------------------ */
   const controlPanel = (
     <SimpleFilterPanel
       periodProps={{ period, setPeriod, startDate, setStartDate, endDate, setEndDate }}
@@ -143,20 +159,31 @@ export default function Home() {
     disabled: false,
   }
 
+  
+
   const timeControl = isMobile ? (
     <TimeControlMobile {...timeControlCommonProps} />
   ) : (
     <TimeControl {...timeControlCommonProps} />
   )
 
-  /* ---------------- page render ----------------------- */
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="h-screen flex flex-col">
         <header className="bg-slate-800 text-white p-3 shadow-md">
           <div className="mx-auto flex justify-between items-center">
-            <h1 className="font-bold text-xl">Singapore Bird Observation Map</h1>
-            {/* まだ使っていないが将来のメニュー用 */}
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/icons/logo-icon.png"
+              width={52}
+              height={52}
+              alt="Bird and map logo"
+              className="shrink-0"
+            />
+            <h1 className="text-2xl font-semibold tracking-tight text-white">
+              Singapore Bird Observation Map
+            </h1>
+          </div>
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
             </Button>
@@ -164,7 +191,6 @@ export default function Home() {
         </header>
 
         {isMobile ? (
-          /* --------- Mobile layout --------- */
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="p-3 space-y-3 bg-slate-100 shadow-md">
               {controlPanel}
@@ -187,7 +213,6 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          /* --------- Desktop layout -------- */
           <div className="flex-1 flex overflow-hidden">
             <div className="w-72 bg-slate-100 p-4 overflow-y-auto shadow-md">
               {controlPanel}

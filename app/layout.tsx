@@ -8,7 +8,10 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Singapore Bird Observation Map",
   description: "Time-series animation of bird observations in Singapore using eBird API data",
-    generator: 'v0.dev'
+  icons: {
+    icon: "/icons/favicon.ico",                    
+    shortcut: "/icons/favicon.ico",                  
+  },                
 }
 
 export default function RootLayout({
