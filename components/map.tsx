@@ -60,7 +60,9 @@ export default function MapComponent({
     const st = document.createElement("style")
     st.textContent = ANIMATION_CSS
     document.head.appendChild(st)
-    return () => document.head.removeChild(st)
+    return () => {
+      document.head.removeChild(st)
+    }
   }, [])
 
   /* ---------- 地図初期化 ---------- */

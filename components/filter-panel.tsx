@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import SpeciesSelector from "@/components/species-selector"
 import PeriodSelector from "@/components/period-selector"
 import AboutSheet from "@/components/about"
 import type { PeriodSelectorProps } from "@/types/app-types"
+import { getCachedPreferences, setCachedPreferences } from "@/lib/cache"
 
 interface SimpleFilterPanelProps {
   periodProps: PeriodSelectorProps
@@ -16,17 +17,44 @@ interface SimpleFilterPanelProps {
 
 export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetData }: SimpleFilterPanelProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle")
+  const [species, setSpecies] = useState<string | null>(null)
 
   const handleGetData = async () => {
     try {
       setStatus("loading")
       await onGetData()
       setStatus("success")
-      setTimeout(() => setStatus("idle"), 2000) 
+      setTimeout(() => setStatus("idle"), 2000)
+      // 保存
+      setCachedPreferences({
+        startDate: periodProps.startDate.toISOString(),
+        endDate: periodProps.endDate.toISOString(),
+        speciesCode: species,
+      })
     } catch (error) {
       console.error("Failed to get data:", error)
       setStatus("idle")
     }
+  }
+
+  useEffect(() => {
+    const cached = getCachedPreferences()
+    if (!cached) return
+    try {
+      const sDate = new Date(cached.startDate)
+      const eDate = new Date(cached.endDate)
+      periodProps.setStartDate(sDate)
+      periodProps.setEndDate(eDate)
+      onSpeciesSelect(cached.speciesCode)
+      setSpecies(cached.speciesCode)
+    } catch (e) {
+      console.warn("Failed to restore cached preferences", e)
+    }
+  }, [])
+
+  const handleSpeciesSelect = (code: string | null) => {
+    setSpecies(code)
+    onSpeciesSelect(code)
   }
 
   return (
@@ -42,7 +70,7 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
       {/* Species Picker */}
       <div>
         <Label className="block text-sm font-medium mb-2">Bird Species</Label>
-        <SpeciesSelector onSelect={onSpeciesSelect} />
+        <SpeciesSelector onSelect={handleSpeciesSelect} />
       </div>
 
       {/* Get Data Button */}
@@ -57,7 +85,6 @@ export default function SimpleFilterPanel({ periodProps, onSpeciesSelect, onGetD
           {status === "success" ? "Got it!" : status === "loading" ? "Loading..." : "Get Data"}
         </Button>
       </div>
-
     </div>
   )
 }
