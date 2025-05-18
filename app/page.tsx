@@ -15,7 +15,7 @@ import { useMobileDetection } from "@/hooks/use-mobile-detection"
 import { useBirdData } from "@/hooks/use-bird-data"
 
 import { ANIMATION_SPEED, SLIDER_INCREMENT } from "@/constants/map-constants"
-import { getCachedPreferences } from "@/lib/cache" // 🔧 追加
+import { getCachedPreferences } from "@/lib/cache"
 import Image from "next/image"
 
 const MapComponent = dynamic(() => import("@/components/map"), {
@@ -28,10 +28,8 @@ const MapComponent = dynamic(() => import("@/components/map"), {
 })
 
 export default function Home() {
-  /* ------------------ キャッシュ取得 ------------------ */
   const cached = typeof window !== "undefined" ? getCachedPreferences() : null
 
-  /* ------------------ Period ------------------ */
   const {
     period,
     setPeriod,
@@ -55,7 +53,6 @@ export default function Home() {
     }
   }, [setStartDate, setEndDate])
 
-  /* ------------------ State ------------------ */
   const [selectedSpecies, setSelectedSpecies] = useState<string | null>(
     cached?.speciesCode ?? null
   )
@@ -64,6 +61,7 @@ export default function Home() {
   const [showAll, setShowAll] = useState(false)
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
+  const [drawerOpen, setDrawerOpen] = useState(false) // 🔧 追加: ドロワー状態
 
   const animationFrameRef = useRef<number | null>(null)
   const lastTimestampRef = useRef<number>(0)
@@ -126,7 +124,6 @@ export default function Home() {
     }
   }, [isPlaying])
 
-  /* ------------------ UI ------------------ */
   const controlPanel = (
     <SimpleFilterPanel
       periodProps={{ period, setPeriod, startDate, setStartDate, endDate, setEndDate }}
@@ -159,8 +156,6 @@ export default function Home() {
     disabled: false,
   }
 
-  
-
   const timeControl = isMobile ? (
     <TimeControlMobile {...timeControlCommonProps} />
   ) : (
@@ -172,28 +167,50 @@ export default function Home() {
       <div className="h-screen flex flex-col">
         <header className="bg-slate-800 text-white p-3 shadow-md">
           <div className="mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Image
-              src="/icons/logo-icon.png"
-              width={52}
-              height={52}
-              alt="Bird and map logo"
-              className="shrink-0"
-            />
-            <h1 className="text-2xl font-semibold tracking-tight text-white">
-              Singapore Bird Observation Map
-            </h1>
-          </div>
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <div className="flex items-center space-x-3">
+              <Image
+                src="/icons/logo-icon.png"
+                width={52}
+                height={52}
+                alt="Bird and map logo"
+                className="shrink-0"
+              />
+              <h1 className="text-2xl font-semibold tracking-tight text-white">
+                Singapore Bird Observation Map
+              </h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setDrawerOpen(true)}
+            >
               <Menu className="h-5 w-5" />
             </Button>
           </div>
         </header>
 
+        {/* Drawer（モバイル時のみ） */}
+        {isMobile && drawerOpen && (
+          <div className="fixed inset-0 z-[1001] bg-black bg-opacity-50 flex justify-end">
+            <div className="w-72 bg-white z-[1001] p-4 shadow-lg h-full overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  className="text-gray-500 hover:text-gray-800"
+                >
+                  ✕
+                </button>
+              </div>
+              {controlPanel}
+            </div>
+          </div>
+        )}
+
         {isMobile ? (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="p-3 space-y-3 bg-slate-100 shadow-md">
-              {controlPanel}
               {timeControl}
             </div>
             <div className="flex-1 overflow-hidden">
