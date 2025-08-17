@@ -96,7 +96,7 @@ export default function SpeciesSelector({ onSelect }: SpeciesSelectorProps) {
     if (searchQuery.trim()) {
       console.table(
         fuse.search(searchQuery.trim()).map(r => ({
-          score: r.score?.toFixed(3),
+          score: typeof r.score === 'number' ? r.score.toFixed(3) : 'N/A',
           comName: r.item.comName,
         }))
       )

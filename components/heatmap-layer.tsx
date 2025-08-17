@@ -48,6 +48,8 @@ export default function HeatmapLayer({
   const heatPoints = useMemo<[number, number, number][]>(() => {
     const m = new Map<string, number>()
     pool.forEach(o => {
+      // Guard against undefined lat/lng values
+      if (typeof o.lat !== 'number' || typeof o.lng !== 'number') return
       const key = `${o.lat.toFixed(4)},${o.lng.toFixed(4)}`
       m.set(key, (m.get(key) || 0) + (o.howMany ?? 1))
     })
