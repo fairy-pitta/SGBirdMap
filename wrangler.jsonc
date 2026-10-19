@@ -1,8 +1,23 @@
 {
   "name": "sgbirdmap",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-19",
-  // 静的書き出し（out/）をそのまま配る。APIルートもSSRも無いので Worker 本体は不要。
-  "assets": { "directory": "./out", "not_found_handling": "404-page" },
-  // custom_domain: true にすると Cloudflare 側が DNS レコードと証明書を自動で用意する。
-  "routes": [{ "pattern": "sgbirdsmap.fairy-pitta.net", "custom_domain": true }]
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page",
+    // 画面は静的書き出し。D1 を読む /api/* だけ Worker に先に回す。
+    // これが無いと静的側が先に 404 を返してAPIに届かない。
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sgbirdmap-db",
+      "database_id": "9b588ab9-9790-45f9-a1cd-db57024fa35d"
+    }
+  ],
+  "routes": [{ "pattern": "sgbirdsmap.fairy-pitta.net", "custom_domain": true }],
+  // 毎日 02:00 UTC = シンガポール 10:00。eBird の前日分が揃ってから回す。
+  "triggers": { "crons": ["0 2 * * *"] },
+  "observability": { "enabled": true }
 }

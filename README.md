@@ -18,14 +18,17 @@
 - **フロントエンド**: Next.js (App Router), React, TypeScript
 - **スタイリング**: Tailwind CSS, shadcn/ui
 - **マップ**: Leaflet
-- **データ取得**: eBird API
+- **データ取得**: eBird API →  Cloudflare D1（`/api/*` 経由。2026-10-19 に Supabase から移行）
+- **ホスティング**: Cloudflare Workers（静的書き出し＋同一オリジンAPI）
 - **状態管理**: React Hooks
+
+構成とデータの粒度は [docs/architecture.md](docs/architecture.md) を参照。
 
 ## 前提条件
 
 - Node.js 18.0.0以上
 - npm 9.0.0以上
-- eBird APIキー（オプション、実際のデータを使用する場合）
+- eBird APIキー（データを取り込む場合。https://ebird.org/api/keygen ）
 
 ## インストール方法
 

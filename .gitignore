@@ -25,3 +25,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# eBird から集めた中間データ。observations.jsonl は23年分で数百MBになるので
+# リポジトリには入れない。D1 が正本で、これは再取得可能な途中生成物。
+/data/observations.jsonl
+/data/_collect_state.json
+/data/sql/

@@ -1,9 +1,14 @@
 /// lib/api.ts
 // ----------------------------------------------------------
 // All data-fetch helpers for the front-end (read-only).
+//
+// 以前は Supabase を直接呼んでいた（anon key がバンドルに載っていた）。
+// Supabase プロジェクトごと失われたため、Cloudflare D1 を読む同一オリジンの
+// Worker API（/api/*）に差し替えた。鍵はクライアントへ出ない。
 // ----------------------------------------------------------
-import { supabase } from "@/lib/supabaseClient"
-import type { BirdObservation } from "@/types/birds" 
+import type { BirdObservation } from "@/types/birds"
+
+export type Species = { code: string; comName: string; sciName: string }
 
 const fallbackObservations: BirdObservation[] = [
   {
@@ -41,19 +46,27 @@ const fallbackObservations: BirdObservation[] = [
 ]
 
 // サンプル種リスト（APIが失敗した場合のフォールバック）
-const fallbackSpecies = [
-  {
-    code: "redjun",
-    comName: "Red Junglefowl",
-    sciName: "Gallus gallus",
-  },
-  {
-    code: "whbsea",
-    comName: "White-bellied Sea-Eagle",
-    sciName: "Haliaeetus leucogaster",
-  },
+const fallbackSpecies: Species[] = [
+  { code: "redjun", comName: "Red Junglefowl", sciName: "Gallus gallus" },
+  { code: "whbsea", comName: "White-bellied Sea-Eagle", sciName: "Haliaeetus leucogaster" },
 ]
 
+/**
+ * 同一オリジンの Worker を叩く。静的書き出しした画面と同じホストに
+ * /api/* が同居しているので、ベースURLの設定は要らない。
+ */
+async function getJson<T>(path: string): Promise<T> {
+  const res = await fetch(path, { headers: { accept: "application/json" } })
+  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`)
+  return (await res.json()) as T
+}
+
+function query(params: Record<string, string | undefined>): string {
+  const sp = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) if (v) sp.set(k, v)
+  const s = sp.toString()
+  return s ? `?${s}` : ""
+}
 
 // ---------- 1) Fetch observation records -------------------------
 export async function fetchBirdObservations(
@@ -62,60 +75,14 @@ export async function fetchBirdObservations(
   endDate?: string,
 ): Promise<BirdObservation[]> {
   try {
-    // Base query: ObservationSGBird JOIN ObservationSG + SGBird
-    let q = supabase
-      .from("ObservationSGBird")
-      .select(
-        `
-        how_many,
-        species_code,
-        ObservationSG:observation_id (
-          id,
-          obs_dt,
-          lat,
-          lng,
-          location_name,
-          location_id,
-          obs_valid,
-          obs_reviewed,
-          user_display_name
-        ),
-        SGBird:species_code (
-          com_name,
-          sci_name
-        )
-      `,
-      )
-      .order("obs_dt", { referencedTable: "ObservationSG" })
-
-    // Filters
-    if (speciesCode) q = q.eq("species_code", speciesCode)
-    if (startDate)   q = q.gte("ObservationSG.obs_dt", startDate)
-    if (endDate)     q = q.lte("ObservationSG.obs_dt", endDate)
-
-    const { data, error } = await q
-    if (error) throw error
-    if (!data) return fallbackObservations
-
-    // Mapping to front-end shape
-    return data.map((row: any) => ({
-      speciesCode:  row.species_code,
-      comName:      row.SGBird?.com_name ?? "",
-      sciName:      row.SGBird?.sci_name ?? "",
-      locId:        row.ObservationSG?.location_id ?? "",
-      locName:      row.ObservationSG?.location_name ?? "",
-      obsDt:        row.ObservationSG?.obs_dt ?? "",
-      obsTime:      undefined,
-      howMany:      row.how_many ?? undefined,
-      lat:          row.ObservationSG?.lat,
-      lng:          row.ObservationSG?.lng,
-      obsValid:     row.ObservationSG?.obs_valid ?? true,
-      obsReviewed:  row.ObservationSG?.obs_reviewed ?? false,
-      locationPrivate: false,
-      userDisplayName: row.ObservationSG?.user_display_name ?? "",
-    })) as BirdObservation[]
+    const rows = await getJson<BirdObservation[]>(
+      `/api/observations${query({ species: speciesCode, start: startDate, end: endDate })}`,
+    )
+    // 期間に記録が無いのは正常。フォールバックの見本データで埋めない
+    // （実データと見本が混ざると、地図の内容を信じられなくなる）。
+    return rows
   } catch (err) {
-    console.error("Supabase query failed:", err)
+    console.error("D1 query failed:", err)
     return fallbackObservations
   }
 }
@@ -130,25 +97,11 @@ export async function fetchSpeciesObservations(
 }
 
 // ---------- 3) Fetch species master list ------------------------
-export async function fetchSpeciesInSingapore(): Promise<
-  { code: string; comName: string; sciName: string }[]
-> {
+export async function fetchSpeciesInSingapore(): Promise<Species[]> {
   try {
-    const { data, error } = await supabase
-      .from("SGBird")
-      .select("species_code, com_name, sci_name")
-      .order("com_name")
-
-    if (error) throw error
-    if (!data) return fallbackSpecies
-
-    return data.map((d) => ({
-      code: d.species_code,
-      comName: d.com_name,
-      sciName: d.sci_name,
-    }))
+    return await getJson<Species[]>("/api/species")
   } catch (err) {
-    console.error("Supabase query failed:", err)
+    console.error("D1 query failed:", err)
     return fallbackSpecies
   }
 }
