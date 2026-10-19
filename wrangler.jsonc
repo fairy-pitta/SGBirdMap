@@ -1,0 +1,8 @@
+{
+  "name": "sgbirdmap",
+  "compatibility_date": "2026-10-19",
+  // 静的書き出し（out/）をそのまま配る。APIルートもSSRも無いので Worker 本体は不要。
+  "assets": { "directory": "./out", "not_found_handling": "404-page" },
+  // custom_domain: true にすると Cloudflare 側が DNS レコードと証明書を自動で用意する。
+  "routes": [{ "pattern": "sgbirdsmap.fairy-pitta.net", "custom_domain": true }]
+}
