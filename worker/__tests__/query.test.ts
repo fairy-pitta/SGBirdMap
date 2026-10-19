@@ -28,6 +28,15 @@ describe("clampLimit", () => {
   it("test_clamp_limit_with_valid_value_returns_that_value", () => {
     expect(clampLimit("120")).toBe(120);
   });
+
+  it("test_clamp_limit_default_covers_one_species_over_the_whole_archive", () => {
+    // 粒度は 種×日 なので、1種の最大件数は 2003-01-01 以降の日数（約8,700）。
+    // 既定値がこれを下回ると、全期間表示が黙って切れる。
+    const daysSince2003 = Math.ceil(
+      (Date.parse("2026-10-19") - Date.parse("2003-01-01")) / 86_400_000
+    );
+    expect(DEFAULT_LIMIT).toBeGreaterThan(daysSince2003);
+  });
 });
 
 describe("isDate", () => {
