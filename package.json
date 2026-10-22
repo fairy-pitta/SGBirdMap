@@ -11,7 +11,8 @@
     "build:sql": "npx tsx scripts/build-sql.ts",
     "import:d1": "./scripts/import-d1.sh",
     "deploy": "npm run build && wrangler deploy",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p worker"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
