@@ -20,6 +20,19 @@ export interface PeriodSelectorProps {
   setEndDate: (date: Date) => void
 }
 
+const PERIOD_OPTIONS: ReadonlyArray<readonly [PeriodType, string]> = [
+  ["allData", "All Data"],
+  ["thisYear", "This Year"],
+  ["past3Years", "Past 3 Years"],
+  ["year", "Select Year"],
+  ["custom", "Custom Period"],
+]
+
+/** RadioGroup の onValueChange は string を渡すので、選択肢にある値だけを PeriodType として通す。 */
+function isPeriodType(value: string): value is PeriodType {
+  return PERIOD_OPTIONS.some(([option]) => option === value)
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -60,6 +73,7 @@ export default function PeriodSelector({
       const now = new Date()
       const currentYear = now.getFullYear()
 
+      if (!isPeriodType(value)) return
       setPeriod(value)
       if (value === "thisYear") {
         setStartDate(new Date(currentYear, 0, 1))
@@ -236,13 +250,7 @@ export default function PeriodSelector({
       <PopoverContent className="w-auto p-4 z-[2000]" align="start">
         <div className="space-y-4">
           <RadioGroup value={period} onValueChange={handlePeriodChange}>
-            {[
-              ["allData", "All Data"],
-              ["thisYear", "This Year"],
-              ["past3Years", "Past 3 Years"],
-              ["year", "Select Year"],
-              ["custom", "Custom Period"]
-            ].map(([val, label]) => (
+            {PERIOD_OPTIONS.map(([val, label]) => (
               <div key={val} className="flex items-center space-x-2">
                 <RadioGroupItem value={val} id={val} />
                 <Label htmlFor={val}>{label}</Label>
