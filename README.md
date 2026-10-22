@@ -83,3 +83,9 @@ Other sources:
 - Map tiles: © OpenStreetMap contributors
 - Singapore land boundary GeoJSON by [@cheeaun](https://gist.github.com/cheeaun/78bb5c3bd27759a14b3cf8e6b6568080)
 - Taxonomy: Clements et al. (2024), The eBird/Clements Checklist of Birds of the World: v2024
+
+## Licence
+
+The source code in this repository is released under the [MIT Licence](LICENSE).
+
+The bird observation data belongs to eBird and the Cornell Lab of Ornithology. It is subject to the [eBird API Terms of Use](https://www.birds.cornell.edu/home/ebird-api-terms-of-use/) and is not covered by the MIT Licence.
