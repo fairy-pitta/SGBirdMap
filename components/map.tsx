@@ -84,7 +84,8 @@ export default function MapComponent({
 
     /* ベースタイル */
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap",
+      attribution:
+        '&copy; OpenStreetMap | Bird data: <a href="https://ebird.org" target="_blank" rel="noopener noreferrer">eBird</a>, Cornell Lab of Ornithology',
       maxZoom: 19,
     }).addTo(m)
 

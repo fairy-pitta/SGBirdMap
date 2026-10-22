@@ -1,282 +1,85 @@
-# シンガポール鳥類観測マップ (Singapore Bird Observation Map)
+# SGBirdMap
 
-シンガポールの鳥類観測データを時系列で表示するインタラクティブなマップアプリケーションです。eBird APIから取得したデータを使用して、鳥類の観測地点と時間を視覚化します。
+A map of bird observations in Singapore, built from eBird data. You can pick a period and a species, then play the observations back over time on the map, with an optional heatmap of observation density.
 
-![アプリケーションのスクリーンショット](/placeholder.svg?height=400&width=800&query=bird%20observation%20map%20with%20timeline%20and%20filters)
+Live demo: https://sgbirdsmap.fairy-pitta.net
 
-## 機能一覧
+## How it works
 
-- **インタラクティブマップ**: Leafletを使用した鳥類観測データの地図表示
-- **時系列アニメーション**: 時間経過に伴う鳥類観測データの変化を表示
-- **種フィルタリング**: 特定の鳥類種に絞った観測データの表示
-- **期間選択**: 観測データの表示期間の選択（今年、過去3年、特定の年、カスタム期間）
-- **レスポンシブデザイン**: モバイル、タブレット、デスクトップに対応したUI
-- **データ視覚化**: 観測数に応じたマーカーサイズの変更とアニメーション効果
+```
+sgbirdsmap.fairy-pitta.net
+  └─ Cloudflare Worker "sgbirdmap"
+       ├─ static assets   out/ (Next.js static export)
+       ├─ /api/*          worker/index.ts, reads from D1 "sgbirdmap-db"
+       │                    /api/species        list of species
+       │                    /api/observations   observations filtered by period and species
+       │                    /api/health
+       └─ cron 0 2 * * *  worker/ingest.ts, fetches recent eBird observations into D1
+```
 
-## 技術スタック
+- The front end is a single Next.js page exported as static files (`output: 'export'`). There is no server-side rendering.
+- The same Cloudflare Worker serves the static files and a small read-only API under `/api/*`. Only `/api/*` is routed to the Worker code; every other path is served directly from `out/`.
+- Observations are stored in Cloudflare D1. At the time of writing the database holds roughly 497,000 observations of 553 species, from 1 January 2003 to the present.
+- A cron trigger runs every day at 02:00 UTC (10:00 in Singapore). It fetches the last seven days of observations from the eBird API and upserts them, so the map stays current without manual steps. Re-running the import does not create duplicates, because each row is keyed on the eBird checklist ID and species code.
 
-- **フロントエンド**: Next.js (App Router), React, TypeScript
-- **スタイリング**: Tailwind CSS, shadcn/ui
-- **マップ**: Leaflet
-- **データ取得**: eBird API
-- **状態管理**: React Hooks
+### Limitation: one record per species per day
 
-## 前提条件
+The eBird endpoints used here (`historic` with `rank=mrec` for the backfill, and `recent` for the daily update) return only the most recent record of each species, not every checklist. The database therefore holds at most one record per species per day across Singapore, and the map shows one representative location per species per day. If a species was seen at several places on the same day, only one of them appears. This is enough to follow how sightings move over time, but it is not every eBird record. See [docs/architecture.md](docs/architecture.md) for details (in Japanese).
 
-- Node.js 18.0.0以上
-- npm 9.0.0以上
-- eBird APIキー（オプション、実際のデータを使用する場合）
+## Stack
 
-## インストール方法
+- Next.js 15 (App Router, static export), React 19, TypeScript
+- Tailwind CSS and shadcn/ui
+- Leaflet with OpenStreetMap tiles
+- Cloudflare Workers (static assets and API), Cloudflare D1, Cron Triggers
+- Wrangler for deployment, Vitest for tests
 
-1. リポジトリをクローン
-\`\`\`bash
-git clone https://github.com/yourusername/singapore-bird-map.git
-cd singapore-bird-map
-\`\`\`
+## Local development
 
-2. 依存関係をインストール
-\`\`\`bash
+Requirements: Node.js and npm. An eBird API key (https://ebird.org/api/keygen) is needed only for importing data.
+
+```bash
 npm install
-\`\`\`
+npm run dev        # Next.js development server for the front end
+npm test           # Vitest tests for the Worker (query building and ingest)
+npm run build      # static export into out/
+npm run deploy     # build, then wrangler deploy (needs access to the Cloudflare account)
+```
 
-3. 環境変数の設定
-\`\`\`bash
-cp .env.local.example .env.local
-# .env.localを編集して必要な環境変数を設定
-\`\`\`
+The development server does not serve `/api/*`. To run the front end and the API together against a local D1 database, build first and then use Wrangler:
 
-## 環境変数の設定
-
-このアプリケーションでは、開発環境と本番環境でAPIのURLを切り替えるために環境変数を使用しています。
-
-### 開発環境の設定
-
-1. `.env.local.example`ファイルを`.env.local`にコピーします。
-2. `.env.local`ファイルを編集して、必要な環境変数を設定します。
-
-\`\`\`bash
-cp .env.local.example .env.local
-\`\`\`
-
-### 本番環境の設定
-
-1. `.env.production.example`ファイルを`.env.production`にコピーします。
-2. `.env.production`ファイルを編集して、必要な環境変数を設定します。
-
-\`\`\`bash
-cp .env.production.example .env.production
-\`\`\`
-
-## 環境変数
-
-| 変数名 | 説明 | 例 |
-|--------|------|-----|
-| `NEXT_PUBLIC_API_URL` | APIのベースURL | `http://localhost:3000/api` または `https://api.example.com` |
-| `EBIRD_API_KEY` | eBird APIキー | `your_ebird_api_key_here` |
-
-## 開発環境と本番環境の切り替え
-
-### 開発環境での実行
-
-\`\`\`bash
-npm run dev
-\`\`\`
-
-このコマンドは`.env.local`ファイルの環境変数を使用します。
-
-### 本番環境用のビルド
-
-\`\`\`bash
+```bash
 npm run build
-\`\`\`
+npx wrangler d1 execute sgbirdmap-db --local --file=schema.sql
+npx wrangler dev
+```
 
-このコマンドは`.env.production`ファイルの環境変数を使用してアプリケーションをビルドします。
+### Importing data
 
-### 本番環境での実行
+The full history is imported once by hand; daily updates are handled by the cron trigger.
 
-\`\`\`bash
-npm run start
-\`\`\`
+```bash
+EBIRD_API_KEY=... npm run collect   # fetch observations from eBird into data/observations.jsonl
+npm run build:sql                   # turn them into SQL files under data/sql/
+npm run import:d1                   # load the SQL files into remote D1 (npm run import:d1 -- --local for a local database)
+```
 
-このコマンドはビルドされたアプリケーションを実行します。
+eBird rejects concurrent requests, so collection runs one request at a time and takes a few hours for the full range. Progress is saved, so an interrupted run continues where it stopped. The D1 free plan allows 100,000 written rows per day, so the import may need to be resumed on a later day.
 
-## APIの仕様
+The Worker reads the eBird API key from a Wrangler secret:
 
-アプリケーションは以下のAPIエンドポイントを使用します：
+```bash
+npx wrangler secret put EBIRD_API_KEY
+```
 
-### 観測データの取得
+## Data and attribution
 
-\`\`\`
-GET /species/observations
-GET /species/{speciesCode}/observations
-\`\`\`
+Bird observation data comes from [eBird](https://ebird.org), run by the Cornell Lab of Ornithology. Use of the data follows the [eBird API Terms of Use](https://www.birds.cornell.edu/home/ebird-api-terms-of-use/). The live site credits eBird and the Cornell Lab of Ornithology in the map attribution and in the About dialogue.
 
-#### パラメータ
+This repository does not include the raw dataset. The collected observations and generated SQL files are excluded from version control, and anyone running the import needs their own eBird API key.
 
-| パラメータ | 説明 | 必須 |
-|------------|------|------|
-| `start` | 開始日（YYYY-MM-DD形式） | いいえ |
-| `end` | 終了日（YYYY-MM-DD形式） | いいえ |
+Other sources:
 
-#### レスポンス例
-
-\`\`\`json
-[
-  {
-    "id": 1234,
-    "species_code": "redjun",
-    "com_name": "Red Junglefowl",
-    "sci_name": "Gallus gallus",
-    "obs_dt": "2023-02-15",
-    "obs_time": "08:30",
-    "how_many": 2,
-    "lat": 1.3521,
-    "lng": 103.8198,
-    "location_name": "Pulau Ubin",
-    "location_id": "L12345678",
-    "obs_valid": true,
-    "obs_reviewed": false,
-    "location_private": false,
-    "user_display_name": "birdwatcher_sg"
-  }
-]
-\`\`\`
-
-### 種リストの取得
-
-\`\`\`
-GET /countries/{countryCode}/species/
-\`\`\`
-
-#### パラメータ
-
-| パラメータ | 説明 | 必須 |
-|------------|------|------|
-| `countryCode` | 国コード（例: "SG"） | はい |
-
-#### レスポンス例
-
-\`\`\`json
-[
-  {
-    "id": 1,
-    "species_code": "redjun",
-    "com_name": "Red Junglefowl",
-    "sci_name": "Gallus gallus",
-    "country_count": 25,
-    "image_url": "https://example.com/image1.jpg"
-  }
-]
-\`\`\`
-
-## データ構造
-
-### 鳥類観測データ (BirdObservation)
-
-\`\`\`typescript
-interface BirdObservation {
-  speciesCode: string      // 種のコード（例: "redjun"）
-  comName: string          // 一般名（例: "Red Junglefowl"）
-  sciName: string          // 学名（例: "Gallus gallus"）
-  locId: string            // 場所ID（例: "L1234567"）
-  locName: string          // 場所名（例: "Pulau Ubin"）
-  obsDt: string            // 観測日（例: "2023-04-21"）
-  obsTime?: string         // 観測時間（例: "08:30"）
-  howMany?: number         // 観測された鳥の数
-  lat: number              // 緯度
-  lng: number              // 経度
-  obsValid: boolean        // 観測が有効かどうか
-  obsReviewed: boolean     // 観測がレビューされたかどうか
-  locationPrivate: boolean // 場所が非公開かどうか
-  userDisplayName: string  // 観測者の表示名
-}
-\`\`\`
-
-### 種情報
-
-\`\`\`typescript
-interface Species {
-  code: string           // 種のコード（例: "redjun"）
-  comName: string        // 一般名（例: "Red Junglefowl"）
-  sciName: string        // 学名（例: "Gallus gallus"）
-  imageUrl?: string      // 画像URL（オプション）
-}
-\`\`\`
-
-## 使用方法
-
-### 基本的な使い方
-
-1. アプリケーションを起動すると、シンガポールの地図が表示されます。
-2. 左側のパネルで鳥類の種類と観測期間を選択できます。
-3. 下部のタイムラインスライダーを使用して、特定の時間の観測データを表示できます。
-4. 再生ボタンをクリックすると、時間経過に伴う観測データの変化をアニメーションで表示します。
-5. 「Show All」ボタンをクリックすると、選択した期間のすべての観測データを一度に表示します。
-
-### モバイルでの使用
-
-1. モバイルデバイスでは、左上のメニューボタンをタップして設定パネルを開きます。
-2. 地図は指でピンチイン・ピンチアウトでズーム、ドラッグで移動できます。
-3. 下部のタイムラインコントロールは簡略化されていますが、同様の機能を提供します。
-
-## 開発ガイドライン
-
-### コード構成
-
-- `app/` - Next.jsのApp Routerページコンポーネント
-- `components/` - 再利用可能なReactコンポーネント
-- `hooks/` - カスタムReact Hooks
-- `lib/` - ユーティリティ関数とAPIクライアント
-- `types/` - TypeScriptの型定義
-- `constants/` - 定数値
-- `public/` - 静的ファイル
-
-### コーディング規約
-
-- TypeScriptの型を適切に使用する
-- コンポーネントは機能ごとに分割する
-- カスタムフックを使用して状態管理とロジックを分離する
-- コメントを適切に記述する
-- ESLintとPrettierを使用してコードの品質を維持する
-
-## 今後の開発計画
-
-- [ ] ユーザー認証機能の追加
-- [ ] お気に入りの鳥類や場所の保存機能
-- [ ] 観測データの統計情報の表示
-- [ ] オフライン対応
-- [ ] 多言語対応
-- [ ] ダークモード対応
-- [ ] 鳥類の詳細情報ページの追加
-- [ ] ソーシャルシェア機能
-
-## トラブルシューティング
-
-### APIエラー
-
-APIからのデータ取得に失敗した場合、アプリケーションはサンプルデータを使用して動作します。APIエラーが発生した場合は、以下を確認してください：
-
-1. 環境変数`NEXT_PUBLIC_API_URL`が正しく設定されているか
-2. APIサーバーが稼働しているか
-3. ネットワーク接続に問題がないか
-
-### マップが表示されない
-
-マップが表示されない場合は、以下を確認してください：
-
-1. インターネット接続が有効か
-2. ブラウザのJavaScriptが有効か
-3. ブラウザのコンソールにエラーメッセージがないか
-
-## ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
-
-## 謝辞
-
-- [eBird](https://ebird.org/) - 鳥類観測データの提供
-- [Leaflet](https://leafletjs.com/) - インタラクティブマップライブラリ
-- [Next.js](https://nextjs.org/) - Reactフレームワーク
-- [Tailwind CSS](https://tailwindcss.com/) - CSSフレームワーク
-- [shadcn/ui](https://ui.shadcn.com/) - UIコンポーネント
+- Map tiles: © OpenStreetMap contributors
+- Singapore land boundary GeoJSON by [@cheeaun](https://gist.github.com/cheeaun/78bb5c3bd27759a14b3cf8e6b6568080)
+- Taxonomy: Clements et al. (2024), The eBird/Clements Checklist of Birds of the World: v2024

@@ -153,6 +153,16 @@ export default function AboutSheet() {
                 <ul className="list-disc list-inside ml-2 space-y-1 text-gray-700 text-sm">
                   <li>
                     <a
+                      href="https://ebird.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Bird observation data: eBird, Cornell Lab of Ornithology
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="https://gist.github.com/cheeaun/78bb5c3bd27759a14b3cf8e6b6568080"
                       target="_blank"
                       rel="noopener noreferrer"
