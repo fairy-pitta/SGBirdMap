@@ -1,0 +1,17 @@
+{
+  // Worker は DOM ではなく workerd 上で動く。ルートの tsconfig（DOM lib）と
+  // 型が衝突しないよう、worker/ だけはこちらで Workers の型を使って検査する。
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true
+  },
+  "include": ["./**/*.ts"]
+}
