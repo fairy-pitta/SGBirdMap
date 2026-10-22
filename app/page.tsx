@@ -57,7 +57,7 @@ export default function Home() {
     cached?.speciesCode ?? null
   )
   const [isPlaying, setIsPlaying] = useState(false)
-  const [timeValue, setTimeValue] = useState<[number]>([0])
+  const [timeValue, setTimeValue] = useState<number[]>([0])
   const [showAll, setShowAll] = useState(false)
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
